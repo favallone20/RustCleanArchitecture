@@ -1,0 +1,80 @@
+// TEMPLATE: Esempio di come aggiungere handler per altre entità
+// Rinomina questo file in `product_handlers.rs` quando implementi l'entità Product
+
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::{IntoResponse, Response},
+    Json,
+};
+use std::sync::Arc;
+use uuid::Uuid;
+
+// Importa i tuoi use cases e DTOs
+// use crate::application::{CreateProductDto, CreateProductUseCase, ProductDto};
+// use crate::infrastructure::InMemoryProductRepository;
+
+use super::AppError;
+
+/*
+/// Handler per creare un nuovo prodotto
+pub async fn create_product(
+    State(repository): State<Arc<InMemoryProductRepository>>,
+    Json(dto): Json<CreateProductDto>,
+) -> Result<Json<ProductDto>, AppError> {
+    let use_case = CreateProductUseCase::new(repository.as_ref().clone());
+    let product = use_case.execute(dto).await?;
+    Ok(Json(product))
+}
+
+/// Handler per ottenere un prodotto per ID
+pub async fn get_product(
+    State(repository): State<Arc<InMemoryProductRepository>>,
+    Path(id): Path<Uuid>,
+) -> Result<Json<ProductDto>, AppError> {
+    let use_case = GetProductUseCase::new(repository.as_ref().clone());
+    let product = use_case.execute(id).await?;
+    Ok(Json(product))
+}
+
+/// Handler per listare tutti i prodotti
+pub async fn list_products(
+    State(repository): State<Arc<InMemoryProductRepository>>,
+) -> Result<Json<Vec<ProductDto>>, AppError> {
+    let use_case = ListProductsUseCase::new(repository.as_ref().clone());
+    let products = use_case.execute().await?;
+    Ok(Json(products))
+}
+
+/// Handler per aggiornare un prodotto
+pub async fn update_product(
+    State(repository): State<Arc<InMemoryProductRepository>>,
+    Path(id): Path<Uuid>,
+    Json(dto): Json<UpdateProductDto>,
+) -> Result<Json<ProductDto>, AppError> {
+    let use_case = UpdateProductUseCase::new(repository.as_ref().clone());
+    let product = use_case.execute(id, dto).await?;
+    Ok(Json(product))
+}
+
+/// Handler per eliminare un prodotto
+pub async fn delete_product(
+    State(repository): State<Arc<InMemoryProductRepository>>,
+    Path(id): Path<Uuid>,
+) -> Result<StatusCode, AppError> {
+    let use_case = DeleteProductUseCase::new(repository.as_ref().clone());
+    use_case.execute(id).await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+*/
+
+// UTILIZZO:
+// 1. Implementa domain/entities/product.rs
+// 2. Implementa application/use_cases per Product
+// 3. Implementa infrastructure/persistence per Product
+// 4. Decomenta questo file e rinominalo in product_handlers.rs
+// 5. Aggiungi in handlers/mod.rs: pub mod product_handlers;
+// 6. Crea route in routes.rs:
+//    .route("/api/products", post(handlers::create_product))
+//    .route("/api/products", get(handlers::list_products))
+//    etc.

@@ -1,0 +1,13 @@
+target/
+.git/
+.gitignore
+.vscode/
+.idea/
+*.md
+Dockerfile
+.dockerignore
+examples/
+docs/
+coverage/
+.env
+.env.local
