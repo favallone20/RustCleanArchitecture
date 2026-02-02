@@ -1,206 +1,433 @@
-# Clean Architecture in Rust
+# Backend Rust - Hexagonal Architecture (Pura)
 
-Un'implementazione **production-ready** della Clean Architecture in Rust con DDD, CQRS patterns, e best practices moderne.
+Un backend moderno in Rust implementato seguendo i principi dell'**Hexagonal Architecture** (Ports and Adapters), con contratti condivisi tra frontend e backend.
 
-**Production Ready: 95%+** ✅
+## 📋 Indice
 
-## 📚 Struttura del Progetto
+- [Caratteristiche](#caratteristiche)
+- [Architettura](#architettura)
+- [Struttura del Progetto](#struttura-del-progetto)
+- [Installazione](#installazione)
+- [Utilizzo](#utilizzo)
+- [API Endpoints](#api-endpoints)
+- [Contratti Condivisi](#contratti-condivisi)
 
-```
-src/
-├── domain/              # Domain Layer - Core Business Logic
-│   ├── entities/        # Entità di business
-│   ├── value_objects/   # Value Objects
-│   ├── repositories/    # Repository Traits (interfacce)
-│   └── errors/          # Domain Errors
-│
-├── application/         # Application Layer - Use Cases
-│   ├── use_cases/       # Use Cases
-│   ├── dto/             # Data Transfer Objects
-│   └── ports/           # Ports (interfacce per servizi esterni)
-│
-├── infrastructure/      # Infrastructure Layer - Implementazioni
-│   ├── persistence/     # Implementazione Repository
-│   └── config/          # Configurazione
-│
-└── presentation/        # Presentation Layer - API/Controllers
-    ├── http/            # HTTP Handlers
-    └── dto/             # Request/Response DTOs
-```
+## ✨ Caratteristiche
 
-## 🎯 Principi della Clean Architecture
-
-1. **Indipendenza dai Framework**: Il business logic non dipende da librerie esterne
-2. **Testabilità**: Il business logic può essere testato senza UI, Database, o servizi esterni
-3. **Indipendenza dalla UI**: La UI può cambiare senza modificare il business logic
-4. **Indipendenza dal Database**: Puoi cambiare database senza modificare il business logic
-5. **Regola della Dipendenza**: Le dipendenze puntano sempre verso l'interno (verso il dominio)
-
-## 🚀 Come Eseguire
-
-```bash
-# Compilare il progetto
-cargo build
-
-# Eseguire l'applicazione
-cargo run
-
-# Eseguire i test
-cargo test
-```
-
-## ✨ Features
-
-### Core Features
-- ✅ **Clean Architecture** con separazione completa dei layer
-- ✅ **Domain-Driven Design** con Value Objects e Aggregates
-- ✅ **Dependency Inversion** - handlers dipendono da abstrazioni
-- ✅ **Repository Pattern** con trait-based abstraction
-- ✅ **Structured Logging** con tracing e context
-- ✅ **Domain Events** system per comunicazione asincrona
-
-### Quality & Reliability
-- ✅ **Value Objects** con validazione (Email, Name)
-- ✅ **Comprehensive Testing** - 37 unit tests + 4 integration tests
-- ✅ **Type Safety** - strong typing per prevenire errori
-- ✅ **Error Handling** - structured domain errors
-
-### Operations & DevOps
-- ✅ **Health Checks** - `/health` e `/ready` endpoints
-- ✅ **API Versioning** - supporto per `/api/v1` e legacy routes
-- ✅ **Environment Configuration** - support per dev/staging/prod
-- ✅ **Feature Flags** - enable/disable features runtime
-
-### Documentation
-- ✅ **Transaction Guide** - pattern UnitOfWork documentato
-- ✅ **Architecture Docs** - decisioni e pattern spiegati
-- ✅ **Example Code** - template handlers e use cases
-
-## 📡 API Endpoints
-
-### Health Checks
-- `GET /health` - Liveness probe (sempre 200 se server attivo)
-- `GET /ready` - Readiness probe (verifica dipendenze)
-
-### User Management (v1)
-- `POST /api/v1/users` - Crea un nuovo utente
-- `GET /api/v1/users/:id` - Ottieni un utente per ID
-- `GET /api/v1/users` - Lista tutti gli utenti
-- `PUT /api/v1/users/:id` - Aggiorna un utente
-- `DELETE /api/v1/users/:id` - Elimina un utente
-
-### Legacy (backward compatibility)
-- `POST /api/users` - Crea un nuovo utente
-- `GET /api/users/:id` - Ottieni un utente per ID
-- `GET /api/users` - Lista tutti gli utenti
-- `PUT /api/users/:id` - Aggiorna un utente
-- `DELETE /api/users/:id` - Elimina un utente
-
-## 🧪 Esempio di Utilizzo
-
-```bash
-# Health check
-curl http://localhost:3000/health
-
-# Readiness check
-curl http://localhost:3000/ready
-
-# Creare un utente (v1 API)
-curl -X POST http://localhost:3000/api/v1/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "mario.rossi@example.com",
-    "name": "Mario Rossi"
-  }'
-
-# Ottenere un utente
-curl http://localhost:3000/api/v1/users/{user_id}
-
-# Lista tutti gli utenti
-curl http://localhost:3000/api/v1/users
-
-# Aggiornare un utente
-curl -X PUT http://localhost:3000/api/v1/users/{user_id} \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Mario Rossi Updated"
-  }'
-
-# Eliminare un utente
-curl -X DELETE http://localhost:3000/api/v1/users/{user_id}
-```
+- **Hexagonal Architecture Pura**: Separazione netta tra Domain, Ports e Adapters
+- **Contratti Condivisi**: Libreria `contracts` riutilizzabile tra frontend e backend
+- **Persistenza File-based**: Storage JSON su file system (niente database pesanti)
+- **Dipendenze Minime**: Solo le librerie essenziali
+- **Type Safety**: Forte tipizzazione con Rust
+- **Domain Isolato**: Business logic completamente indipendente dall'infrastruttura
 
 ## 🏗️ Architettura
 
-### Domain Layer
-Contiene le entità di business, value objects e le interfacce dei repository. 
-Non ha dipendenze esterne.
+### Hexagonal Architecture - Ports & Adapters
 
-### Application Layer
-Contiene i use cases che orchestrano il flusso di dati tra il presentation layer 
-e il domain layer.
-
-### Infrastructure Layer
-Implementa le interfacce definite nel domain layer. Contiene implementazioni 
-concrete di repository, connessioni database, etc.
-
-### Presentation Layer
-Gestisce le richieste HTTP e la presentazione dei dati. Dipende solo dai use cases.
-
-## 🎯 Improvements Implemented
-
-### P0 - Critical (Completed ✅)
-- **Handler Dependencies Fixed**: Gli handler ora dipendono dal trait `UserRepository` invece dell'implementazione concreta, rispettando il Dependency Inversion Principle
-- **Type Alias**: `DynUserRepository` per facilitare il cambio di repository
-
-### P1 - High Priority (Completed ✅)
-- **Structured Logging**: Logging completo in use cases, handlers e repository con tracing e context
-- **Name Value Object**: Validazione centralizzata del nome con 8 test completi
-
-### P2 - Medium Priority (Completed ✅)
-- **Domain Events**: Sistema completo di eventi con `DomainEvent` trait, `EventPublisher`, e eventi User
-- **Transaction Documentation**: Guida completa per implementare il pattern UnitOfWork
-
-### P3 - Low Priority (Completed ✅)
-- **Health Checks**: Endpoint `/health` e `/ready` per Kubernetes liveness/readiness probes
-- **API Versioning**: Struttura per `/api/v1` con supporto per multiple versioni
-- **Enhanced Configuration**: Support per environments (dev/staging/prod), database config, logging config, e feature flags
-
-## 📊 Test Coverage
-
-- **37** unit tests (domain, application, infrastructure)
-- **4** integration tests (complete user lifecycle)
-- **100%** critical path coverage
-- All tests passing ✅
-
-## 🔧 Configuration
-
-Copy `config_example.env` to `.env` and adjust:
-
-```bash
-# Environment
-ENVIRONMENT=development  # development, staging, production
-
-# Server
-SERVER_HOST=127.0.0.1
-SERVER_PORT=3000
-
-# Database (when implemented)
-DATABASE_TYPE=in-memory
-# DATABASE_URL=postgresql://user:password@localhost:5432/dbname
-
-# Logging
-LOG_LEVEL=info
-LOG_JSON=false
-
-# Features
-FEATURE_EVENTS=false
-FEATURE_METRICS=false
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      INPUT ADAPTERS                         │
+│                     (Driving Adapters)                      │
+│                                                             │
+│  ┌──────────────┐        ┌──────────────┐                 │
+│  │   HTTP API   │        │     CLI      │                 │
+│  │   (Axum)     │        │  (Future)    │                 │
+│  └──────┬───────┘        └──────┬───────┘                 │
+│         │                       │                          │
+└─────────┼───────────────────────┼──────────────────────────┘
+          │                       │
+          │     INPUT PORTS       │
+          │      (Driving)        │
+          ▼                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│                       DOMAIN CORE                           │
+│                                                             │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              DOMAIN SERVICES                        │   │
+│  │         (Business Logic Orchestration)              │   │
+│  │  • UserService                                      │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                          │                                  │
+│                          │ uses                             │
+│                          ▼                                  │
+│  ┌─────────────────────────────────────────────────────┐   │
+│  │              ENTITIES & VALUE OBJECTS               │   │
+│  │  • User (Entity)                                    │   │
+│  │  • Email, Password (Value Objects)                  │   │
+│  └─────────────────────────────────────────────────────┘   │
+│                          │                                  │
+│                          │ requires                         │
+│                          ▼                                  │
+│                    OUTPUT PORTS                             │
+│                     (Driven)                                │
+│         UserRepository (Interface/Trait)                    │
+└─────────────────────────┬───────────────────────────────────┘
+                          │
+                          │ implemented by
+                          ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    OUTPUT ADAPTERS                          │
+│                     (Driven Adapters)                       │
+│                                                             │
+│  ┌──────────────┐        ┌──────────────┐                 │
+│  │ File Storage │        │   Database   │                 │
+│  │   (JSON)     │        │  (Future)    │                 │
+│  └──────────────┘        └──────────────┘                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 📚 Documentation
+### Principi Chiave
 
-- [Architecture Decisions](docs/ARCHITECTURE.md) - Decisioni architetturali e pattern
-- [Transaction Guide](docs/TRANSACTIONS.md) - Come implementare transazioni
-- [API Versioning](docs/API_VERSIONING.md) - Strategia di versioning
-- [Configuration Guide](docs/CONFIGURATION.md) - Configurazione completa
+1. **Domain al Centro**: La business logic non dipende da nulla
+2. **Dependency Inversion**: Le dipendenze puntano verso l'interno
+3. **Ports (Interfacce)**: Definiscono i contratti
+4. **Adapters (Implementazioni)**: Connettono il domain con il mondo esterno
+5. **Testabilità**: Ogni layer è facilmente testabile in isolamento
+
+## 📁 Struttura del Progetto
+
+```
+backend-rust/
+├── Cargo.toml              # Workspace configuration
+├── Makefile                # Comandi di sviluppo
+├── README.md
+│
+├── contracts/              # 📜 Contratti condivisi (DTO)
+│   ├── Cargo.toml
+│   └── src/
+│       ├── lib.rs
+│       ├── dto.rs          # UserDto, CreateUserDto, etc.
+│       └── error.rs        # ApiError, ErrorCode
+│
+├── backend/                # 🚀 Applicazione Backend
+│   ├── Cargo.toml
+│   ├── src/
+│   │   ├── main.rs         # Entry point & dependency wiring
+│   │   │
+│   │   ├── domain/         # 💎 DOMAIN CORE
+│   │   │   ├── mod.rs
+│   │   │   ├── entities.rs      # User entity
+│   │   │   ├── value_objects.rs # Email, Password
+│   │   │   ├── services.rs      # UserService (business logic)
+│   │   │   └── error.rs         # Domain errors
+│   │   │
+│   │   ├── ports/          # 🔌 PORTS (Interfaces)
+│   │   │   ├── mod.rs
+│   │   │   ├── input.rs         # Input ports (API contracts)
+│   │   │   └── output.rs        # Output ports (Repository trait)
+│   │   │
+│   │   └── adapters/       # 🔧 ADAPTERS (Implementations)
+│   │       ├── mod.rs
+│   │       ├── input/           # Driving adapters
+│   │       │   ├── mod.rs
+│   │       │   └── http_api.rs  # REST API with Axum
+│   │       └── output/          # Driven adapters
+│   │           ├── mod.rs
+│   │           └── file_storage.rs  # JSON file repository
+│   │
+│   └── data/               # 📂 Storage files (gitignored)
+│       └── users.json
+│
+└── test-api.sh             # Script per testare le API
+```
+
+## 🚀 Installazione
+
+### Prerequisiti
+
+- Rust 1.75+ ([Installa Rust](https://rustup.rs/))
+
+### Setup
+
+1. **Clona il repository**
+   ```bash
+   cd "backend rust"
+   ```
+
+2. **Compila il progetto**
+   ```bash
+   cargo build
+   ```
+
+## 💻 Utilizzo
+
+### Avvio del Server
+
+```bash
+# Dalla directory backend
+cd backend
+cargo run
+```
+
+Il server sarà disponibile su `http://127.0.0.1:3000`
+
+### I Dati Vengono Salvati su File
+
+I dati degli utenti sono persistiti in `backend/data/users.json` in formato JSON leggibile.
+
+## 🌐 API Endpoints
+
+### Health Check
+
+```http
+GET /health
+```
+
+### Users API
+
+```http
+POST   /api/users           # Crea un nuovo utente
+GET    /api/users           # Lista tutti gli utenti
+GET    /api/users/:id       # Ottieni un utente specifico
+PUT    /api/users/:id       # Aggiorna un utente
+DELETE /api/users/:id       # Elimina un utente
+```
+
+### Esempi
+
+#### Crea Utente
+
+```bash
+curl -X POST http://127.0.0.1:3000/api/users \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "mario.rossi@example.com",
+    "name": "Mario Rossi",
+    "password": "password123"
+  }'
+```
+
+**Risposta:**
+```json
+{
+  "success": true,
+  "data": {
+    "id": "550e8400-e29b-41d4-a716-446655440000",
+    "email": "mario.rossi@example.com",
+    "name": "Mario Rossi",
+    "created_at": "2024-01-01T12:00:00Z",
+    "updated_at": "2024-01-01T12:00:00Z"
+  },
+  "error": null
+}
+```
+
+#### Lista Utenti
+
+```bash
+curl http://127.0.0.1:3000/api/users
+```
+
+#### Aggiorna Utente
+
+```bash
+curl -X PUT http://127.0.0.1:3000/api/users/550e8400-e29b-41d4-a716-446655440000 \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Mario Verdi"
+  }'
+```
+
+#### Elimina Utente
+
+```bash
+curl -X DELETE http://127.0.0.1:3000/api/users/550e8400-e29b-41d4-a716-446655440000
+```
+
+## 📦 Contratti Condivisi
+
+La crate `contracts` definisce i contratti tra frontend e backend.
+
+### Nel Backend
+
+```toml
+[dependencies]
+contracts = { path = "../contracts" }
+```
+
+```rust
+use contracts::{UserDto, CreateUserDto, ApiResponse};
+```
+
+### Nel Frontend (esempio con Yew/Leptos)
+
+```toml
+[dependencies]
+contracts = { path = "../backend-rust/contracts" }
+```
+
+```rust
+use contracts::{UserDto, ApiResponse};
+
+// Deserializza la risposta dall'API
+let response: ApiResponse<UserDto> = serde_json::from_str(&json)?;
+```
+
+### DTO Disponibili
+
+- **User**: `UserDto`, `CreateUserDto`, `UpdateUserDto`
+- **Response**: `ApiResponse<T>`
+- **Error**: `ApiError`, `ErrorCode`
+
+## 🎯 Come Funziona l'Architettura Esagonale
+
+### 1. Il Domain è al Centro
+
+```rust
+// domain/entities.rs - NON dipende da nulla
+pub struct User {
+    id: Uuid,
+    email: Email,
+    name: String,
+    // ...
+}
+
+impl User {
+    pub fn create(email: Email, name: String, password: Password) -> Self {
+        // Business logic pura
+    }
+}
+```
+
+### 2. I Ports Definiscono i Contratti
+
+```rust
+// ports/secondary.rs - Interfaccia che il domain richiede
+#[async_trait]
+pub trait UserRepository: Send + Sync {
+    async fn save(&self, user: User) -> DomainResult<User>;
+    async fn find_by_id(&self, id: Uuid) -> DomainResult<Option<User>>;
+    // ...
+}
+```
+
+### 3. Gli Adapters Implementano i Ports
+
+```rust
+// adapters/secondary/file_storage.rs - Implementazione concreta
+pub struct FileUserRepository { /* ... */ }
+
+#[async_trait]
+impl UserRepository for FileUserRepository {
+    async fn save(&self, user: User) -> DomainResult<User> {
+        // Salva su file JSON
+    }
+}
+```
+
+### 4. I Domain Services Orchestrano la Logica
+
+```rust
+// domain/services.rs - Usa i ports, non gli adapters
+pub struct UserService {
+    repository: Arc<dyn UserRepository>,  // <- Dipende dall'interfaccia
+}
+
+impl UserService {
+    pub async fn create_user(&self, email: String, ...) -> DomainResult<User> {
+        // 1. Validazione
+        // 2. Creazione entità
+        // 3. Persistenza tramite port
+    }
+}
+```
+
+### 5. Il Main Collega Tutto (Dependency Injection)
+
+```rust
+// main.rs - Wiring delle dipendenze
+#[tokio::main]
+async fn main() {
+    // Crea gli adapters
+    let repository = Arc::new(FileUserRepository::new("data/users.json"));
+    
+    // Inietta nel domain service
+    let user_service = Arc::new(UserService::new(repository));
+    
+    // Avvia l'adapter primario
+    let server = HttpServer::new(user_service);
+    server.start("127.0.0.1:3000").await?;
+}
+```
+
+## 🔄 Sostituire gli Adapters
+
+Grazie all'architettura esagonale, puoi facilmente sostituire gli adapters:
+
+### Esempio: Da File a Database
+
+```rust
+// Crea un nuovo adapter
+pub struct PostgresUserRepository { /* ... */ }
+
+#[async_trait]
+impl UserRepository for PostgresUserRepository {
+    // Implementa il trait
+}
+
+// Nel main.rs, cambia solo questa riga:
+let repository = Arc::new(PostgresUserRepository::new(pool));
+// Il resto del codice rimane identico!
+```
+
+### Esempio: Da HTTP a CLI
+
+```rust
+// Crea un nuovo input adapter
+pub struct CliAdapter {
+    user_service: Arc<UserService>,
+}
+
+impl CliAdapter {
+    pub async fn run(&self) {
+        // Leggi input da terminale
+        // Chiama user_service
+        // Mostra output
+    }
+}
+```
+
+## 🧪 Testing
+
+L'architettura esagonale rende i test estremamente semplici:
+
+```rust
+// Test del Domain (senza dipendenze esterne)
+#[tokio::test]
+async fn test_create_user() {
+    let mock_repo = Arc::new(MockUserRepository::new());
+    let service = UserService::new(mock_repo);
+    
+    let user = service
+        .create_user("test@example.com".to_string(), "Test".to_string(), "password123".to_string())
+        .await
+        .unwrap();
+    
+    assert_eq!(user.email().value(), "test@example.com");
+}
+```
+
+## 📚 Vantaggi di Questa Architettura
+
+✅ **Indipendenza dal Framework**: Cambia Axum con Actix senza toccare il domain  
+✅ **Indipendenza dal Database**: Passa da file a PostgreSQL facilmente  
+✅ **Testabilità**: Testa il business logic senza dipendenze esterne  
+✅ **Manutenibilità**: Ogni componente ha una responsabilità chiara  
+✅ **Scalabilità**: Aggiungi nuovi adapters senza modificare il core  
+✅ **Chiarezza**: L'architettura è evidente dalla struttura del codice  
+
+## 🎓 Risorse
+
+- [Hexagonal Architecture](https://alistair.cockburn.us/hexagonal-architecture/) - Alistair Cockburn
+- [Ports and Adapters Pattern](https://en.wikipedia.org/wiki/Hexagonal_architecture_(software))
+- [Domain-Driven Design](https://martinfowler.com/bliki/DomainDrivenDesign.html)
+
+## 📄 Licenza
+
+MIT License
+
+## ✍️ Autore
+
+Creato con ❤️ usando Rust e Hexagonal Architecture
